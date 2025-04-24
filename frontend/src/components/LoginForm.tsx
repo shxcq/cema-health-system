@@ -1,4 +1,3 @@
-// frontend/src/components/LoginForm.tsx
 import React from 'react';
 import { Form, Button, Card, Alert } from 'react-bootstrap';
 
@@ -11,7 +10,14 @@ interface LoginFormProps {
   handleLogin: (e: React.FormEvent) => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ username, password, error, setUsername, setPassword, handleLogin }) => (
+const LoginForm: React.FC<LoginFormProps> = ({
+  username,
+  password,
+  error,
+  setUsername,
+  setPassword,
+  handleLogin,
+}) => (
   <Card className="p-4 shadow-lg" style={{ maxWidth: '400px', width: '100%' }}>
     <Card.Body>
       <h3 className="text-center mb-4">
@@ -20,7 +26,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ username, password, error, setUse
       {error && <Alert variant="danger">{error}</Alert>}
       <Form onSubmit={handleLogin}>
         <Form.Group className="mb-3" controlId="username">
-          <Form.Label><i className="fas fa-user me-2"></i>Username</Form.Label>
+          <Form.Label>
+            <i className="fas fa-user me-2"></i>Username
+          </Form.Label>
           <Form.Control
             type="text"
             placeholder="Enter username"
@@ -30,7 +38,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ username, password, error, setUse
           />
         </Form.Group>
         <Form.Group className="mb-3" controlId="password">
-          <Form.Label><i className="fas fa-lock me-2"></i>Password</Form.Label>
+          <Form.Label>
+            <i className="fas fa-lock me-2"></i>Password
+          </Form.Label>
           <Form.Control
             type="password"
             placeholder="Enter password"
