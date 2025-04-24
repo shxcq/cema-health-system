@@ -1,0 +1,17 @@
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Node modules
+node_modules/
+frontend/build/
+
+# macOS
+.DS_Store
