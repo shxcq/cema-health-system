@@ -1,34 +1,41 @@
-import React from 'react';
-import { Form, Button, Card, Alert } from 'react-bootstrap';
+import React, { useState } from 'react';
+import axios from 'axios';
+import { Container, Form, Button, Alert } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
+// Define the props interface for LoginForm
 interface LoginFormProps {
-  username: string;
-  password: string;
-  error: string;
-  setUsername: (value: string) => void;
-  setPassword: (value: string) => void;
-  handleLogin: (e: React.FormEvent) => void;
+  onLogin: () => void; // Callback to notify parent (App.tsx) of successful login
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({
-  username,
-  password,
-  error,
-  setUsername,
-  setPassword,
-  handleLogin,
-}) => (
-  <Card className="p-4 shadow-lg" style={{ maxWidth: '400px', width: '100%' }}>
-    <Card.Body>
-      <h3 className="text-center mb-4">
-        <i className="fas fa-user-md me-2"></i> CEMA Health System
-      </h3>
+const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('http://localhost:5001/api/login', {
+        username,
+        password,
+      });
+      localStorage.setItem('token', response.data.access_token);
+      onLogin(); // Notify App.tsx of successful login
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Invalid username or password.');
+    }
+  };
+
+  return (
+    <Container className="mt-5">
+      <h2>Login</h2>
       {error && <Alert variant="danger">{error}</Alert>}
-      <Form onSubmit={handleLogin}>
+      <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3" controlId="username">
-          <Form.Label>
-            <i className="fas fa-user me-2"></i>Username
-          </Form.Label>
+          <Form.Label>Username</Form.Label>
           <Form.Control
             type="text"
             placeholder="Enter username"
@@ -38,9 +45,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           />
         </Form.Group>
         <Form.Group className="mb-3" controlId="password">
-          <Form.Label>
-            <i className="fas fa-lock me-2"></i>Password
-          </Form.Label>
+          <Form.Label>Password</Form.Label>
           <Form.Control
             type="password"
             placeholder="Enter password"
@@ -49,12 +54,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
             required
           />
         </Form.Group>
-        <Button variant="primary" type="submit" className="w-100 btn-hover">
+        <Button variant="primary" type="submit">
           Login
         </Button>
       </Form>
-    </Card.Body>
-  </Card>
-);
+    </Container>
+  );
+};
 
 export default LoginForm;
