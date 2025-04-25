@@ -3,16 +3,13 @@ import axios from 'axios';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import { Doughnut, Line, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, BarElement, CategoryScale } from 'chart.js';
-import SearchClients from './SearchClients';
-import ClientList from './ClientList';
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, BarElement, CategoryScale);
 
 const Dashboard: React.FC = () => {
-  const [clients, setClients] = useState<any[]>([]);
   const [programs, setPrograms] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [clients, setClients] = useState<any[]>([]);
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -24,7 +21,7 @@ const Dashboard: React.FC = () => {
 
   const fetchClients = async () => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/clients/search?q=${searchQuery}`, {
+      const response = await axios.get(`http://localhost:5001/api/clients/search?q=`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClients(response.data);
@@ -42,11 +39,6 @@ const Dashboard: React.FC = () => {
     } catch (err) {
       console.error('Failed to fetch programs:', err);
     }
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchClients();
   };
 
   const programCounts = programs.map((program: any) => {
@@ -101,13 +93,6 @@ const Dashboard: React.FC = () => {
     <Container className="mt-4">
       <h2>Dashboard</h2>
       <Row className="mb-4">
-        <SearchClients
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          onSearch={handleSearch}
-        />
-      </Row>
-      <Row className="mb-4">
         <Col md={4}>
           <Card className="chart-card dashboard-chart">
             <Card.Body>
@@ -131,11 +116,6 @@ const Dashboard: React.FC = () => {
               <Line data={registrationData} options={{ maintainAspectRatio: false }} />
             </Card.Body>
           </Card>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <ClientList clients={clients} />
         </Col>
       </Row>
     </Container>
