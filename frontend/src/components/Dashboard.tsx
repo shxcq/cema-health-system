@@ -1,295 +1,181 @@
-import React from 'react';
-import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Form,
-  Button,
-  Navbar,
-  Nav,
-  Alert,
-} from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Container, Row, Col, Card, Form, Button, Table } from 'react-bootstrap';
+import { Doughnut, Line, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, BarElement, CategoryScale } from 'chart.js';
+import { Link } from 'react-router-dom';
 
-interface DashboardProps {
-  token: string;
-  error: string;
-  searchQuery: string;
-  clients: any[];
-  clientData: {
-    first_name: string;
-    last_name: string;
-    email: string;
-    phone: string;
-    date_of_birth: string;
+// Register Chart.js components
+ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, BarElement, CategoryScale);
+
+const Dashboard: React.FC = () => {
+  const [clients, setClients] = useState<any[]>([]);
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    if (token) {
+      fetchClients();
+      fetchPrograms();
+    }
+  }, [token]);
+
+  const fetchClients = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/clients/search?q=${searchQuery}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setClients(response.data);
+    } catch (err) {
+      console.error('Failed to fetch clients:', err);
+    }
   };
-  programData: { name: string; description: string };
-  enrollData: { client_id: string; program_id: string };
-  setToken: (value: string) => void;
-  setError: (value: string) => void;
-  setSearchQuery: (value: string) => void;
-  setClients: (value: any[]) => void;
-  setClientData: (value: any) => void;
-  setProgramData: (value: any) => void;
-  setEnrollData: (value: any) => void;
-  handleSearchClients: () => void;
-  handleRegisterClient: (e: React.FormEvent) => void;
-  handleCreateProgram: (e: React.FormEvent) => void;
-  handleEnrollClient: (e: React.FormEvent) => void;
-}
 
-const Dashboard: React.FC<DashboardProps> = ({
-  token,
-  error,
-  searchQuery,
-  clients,
-  clientData,
-  programData,
-  enrollData,
-  setToken,
-  setError,
-  setSearchQuery,
-  setClients,
-  setClientData,
-  setProgramData,
-  setEnrollData,
-  handleSearchClients,
-  handleRegisterClient,
-  handleCreateProgram,
-  handleEnrollClient,
-}) => (
-  <>
-    <Navbar bg="dark" variant="dark" expand="lg" className="mb-4">
-      <Container>
-        <Navbar.Brand>
-          <i className="fas fa-user-md me-2"></i>CEMA Health System
-        </Navbar.Brand>
-        <Nav className="ms-auto">
-          <Nav.Link onClick={() => setToken('')}>
-            <i className="fas fa-sign-out-alt me-2"></i>Logout
-          </Nav.Link>
-        </Nav>
-      </Container>
-    </Navbar>
-    <Container>
+  const fetchPrograms = async () => {
+    try {
+      const response = await axios.get('http://localhost:5001/api/programs', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPrograms(response.data);
+    } catch (err) {
+      console.error('Failed to fetch programs:', err);
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchClients();
+  };
+
+  const programCounts = programs.map((program: any) => {
+    return {
+      name: program.name,
+      count: clients.filter((client: any) =>
+        client.programs.some((p: any) => p.id === program.id)
+      ).length,
+    };
+  });
+
+  const genderData = {
+    labels: ['Male', 'Female', 'Other'],
+    datasets: [
+      {
+        data: [
+          clients.filter((client: any) => client.gender === 'Male').length,
+          clients.filter((client: any) => client.gender === 'Female').length,
+          clients.filter((client: any) => client.gender === 'Other').length,
+        ],
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+      },
+    ],
+  };
+
+  const programData = {
+    labels: programCounts.map((pc: any) => pc.name),
+    datasets: [
+      {
+        label: 'Number of Clients',
+        data: programCounts.map((pc: any) => pc.count),
+        backgroundColor: '#36A2EB',
+      },
+    ],
+  };
+
+  const registrationData = {
+    labels: Array.from(new Set(clients.map((client: any) => new Date(client.created_at).toLocaleDateString()))),
+    datasets: [
+      {
+        label: 'Client Registrations',
+        data: Array.from(new Set(clients.map((client: any) => new Date(client.created_at).toLocaleDateString()))).map(
+          (date) => clients.filter((client: any) => new Date(client.created_at).toLocaleDateString() === date).length
+        ),
+        borderColor: '#FF6384',
+        fill: false,
+      },
+    ],
+  };
+
+  return (
+    <Container className="mt-4">
+      <h2>Dashboard</h2>
+      <Row className="mb-4">
+        <Col md={6}>
+          <Form onSubmit={handleSearch}>
+            <Form.Group className="mb-3">
+              <Form.Label>Search Clients</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </Form.Group>
+            <Button variant="primary" type="submit">Search</Button>
+          </Form>
+        </Col>
+      </Row>
       <Row>
-        <Col md={3}>
-          <Card className="shadow-sm mb-4">
+        <Col md={4}>
+          <Card className="chart-card">
             <Card.Body>
-              <Nav className="flex-column">
-                <Nav.Link href="#search">
-                  <i className="fas fa-search me-2"></i>Search Clients
-                </Nav.Link>
-                <Nav.Link href="#register">
-                  <i className="fas fa-user-plus me-2"></i>Register Client
-                </Nav.Link>
-                <Nav.Link href="#programs">
-                  <i className="fas fa-list me-2"></i>Create Program
-                </Nav.Link>
-                <Nav.Link href="#enroll">
-                  <i className="fas fa-link me-2"></i>Enroll Client
-                </Nav.Link>
-              </Nav>
+              <Card.Title>Clients by Gender</Card.Title>
+              <Doughnut data={genderData} />
             </Card.Body>
           </Card>
         </Col>
-        <Col md={9}>
-          {error && <Alert variant="danger">{error}</Alert>}
-          <Card className="shadow-sm mb-4" id="search">
+        <Col md={4}>
+          <Card className="chart-card">
             <Card.Body>
-              <Card.Title>
-                <i className="fas fa-search me-2"></i>Search Clients
-              </Card.Title>
-              <Form.Group className="mb-3">
-                <Form.Control
-                  type="text"
-                  placeholder="Search by name or email"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearchClients()}
-                />
-              </Form.Group>
-              <Button variant="outline-primary" onClick={handleSearchClients}>
-                Search
-              </Button>
-              <ul className="list-group mt-3">
-                {clients.map((client: any) => (
-                  <li key={client.id} className="list-group-item">
-                    {client.first_name} {client.last_name} ({client.email})
-                    <Button
-                      variant="link"
-                      onClick={() =>
-                        (window.location.href = `/client/${client.id}`)
-                      }
-                    >
-                      View Profile
-                    </Button>
-                  </li>
-                ))}
-              </ul>
+              <Card.Title>Clients by Program</Card.Title>
+              <Bar data={programData} />
             </Card.Body>
           </Card>
-          <Card className="shadow-sm mb-4" id="register">
+        </Col>
+        <Col md={4}>
+          <Card className="chart-card">
             <Card.Body>
-              <Card.Title>
-                <i className="fas fa-user-plus me-2"></i>Register Client
-              </Card.Title>
-              <Form onSubmit={handleRegisterClient}>
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>First Name</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={clientData.first_name}
-                        onChange={(e) =>
-                          setClientData({
-                            ...clientData,
-                            first_name: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Last Name</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={clientData.last_name}
-                        onChange={(e) =>
-                          setClientData({
-                            ...clientData,
-                            last_name: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Form.Group className="mb-3">
-                  <Form.Label>Email</Form.Label>
-                  <Form.Control
-                    type="email"
-                    value={clientData.email}
-                    onChange={(e) =>
-                      setClientData({ ...clientData, email: e.target.value })
-                    }
-                    required
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Phone</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={clientData.phone}
-                    onChange={(e) =>
-                      setClientData({ ...clientData, phone: e.target.value })
-                    }
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Date of Birth</Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={clientData.date_of_birth}
-                    onChange={(e) =>
-                      setClientData({
-                        ...clientData,
-                        date_of_birth: e.target.value,
-                      })
-                    }
-                  />
-                </Form.Group>
-                <Button variant="primary" type="submit" className="btn-hover">
-                  Register
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-          <Card className="shadow-sm mb-4" id="programs">
-            <Card.Body>
-              <Card.Title>
-                <i className="fas fa-list me-2"></i>Create Program
-              </Card.Title>
-              <Form onSubmit={handleCreateProgram}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Program Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={programData.name}
-                    onChange={(e) =>
-                      setProgramData({ ...programData, name: e.target.value })
-                    }
-                    required
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Description</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    value={programData.description}
-                    onChange={(e) =>
-                      setProgramData({
-                        ...programData,
-                        description: e.target.value,
-                      })
-                    }
-                  />
-                </Form.Group>
-                <Button variant="primary" type="submit" className="btn-hover">
-                  Create
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-          <Card className="shadow-sm" id="enroll">
-            <Card.Body>
-              <Card.Title>
-                <i className="fas fa-link me-2"></i>Enroll Client in Program
-              </Card.Title>
-              <Form onSubmit={handleEnrollClient}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Client ID</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={enrollData.client_id}
-                    onChange={(e) =>
-                      setEnrollData({
-                        ...enrollData,
-                        client_id: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Program ID</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={enrollData.program_id}
-                    onChange={(e) =>
-                      setEnrollData({
-                        ...enrollData,
-                        program_id: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </Form.Group>
-                <Button variant="primary" type="submit" className="btn-hover">
-                  Enroll
-                </Button>
-              </Form>
+              <Card.Title>Registrations Over Time</Card.Title>
+              <Line data={registrationData} />
             </Card.Body>
           </Card>
         </Col>
       </Row>
+      <Row className="mt-4">
+        <Col>
+          <h3>Clients</h3>
+          {clients.length > 0 ? (
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((client: any) => (
+                  <tr key={client.id}>
+                    <td>{client.id}</td>
+                    <td>{client.first_name} {client.last_name}</td>
+                    <td>{client.email}</td>
+                    <td>
+                      <Link to={`/clients/${client.id}`}>
+                        <Button variant="outline-primary" size="sm">View Profile</Button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <p>No clients found.</p>
+          )}
+        </Col>
+      </Row>
     </Container>
-  </>
-);
+  );
+};
 
 export default Dashboard;
