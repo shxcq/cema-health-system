@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask import Flask  # Added for type hint
 
 db = SQLAlchemy()
 
@@ -26,9 +27,9 @@ client_programs = db.Table('client_programs',
     db.Column('program_id', db.Integer, db.ForeignKey('program.id'), primary_key=True)
 )
 
-def init_db(app):
+def init_db(app: Flask) -> None:  # Added type hint for app
     db.init_app(app)
-    with app.app_context():
+    with app.app_context():  # type: ignore
         db.create_all()
         if not User.query.filter_by(username='doctor').first():
             default_user = User(username='doctor', password='password')
