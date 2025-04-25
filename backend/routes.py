@@ -1,146 +1,130 @@
-from flask import request, jsonify
-from flask_jwt_extended import jwt_required, create_access_token
-from models import db, User, Client, Program, client_programs
-from sqlalchemy import or_
+from flask import Flask, request, jsonify
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token
+from datetime import datetime
+from models import db, Client, Program
 
-# Login route
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///health_system.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JWT_SECRET_KEY'] = 'your-secret-key'
+db.init_app(app)
+jwt = JWTManager(app)
+
+with app.app_context():
+    db.create_all()
+
+@app.route('/api/login', methods=['POST'])
 def login():
-    """Handle user login and generate JWT access token.
-    
-    Returns:
-        JSON response with access token on success, or error message on failure.
-    """
-    if request.method == 'OPTIONS':
-        return '', 200  # Handle CORS preflight request
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
-    user = User.query.filter_by(username=username, password=password).first()
-    if user:
+    if username == 'doctor' and password == 'password':
         access_token = create_access_token(identity=username)
-        return jsonify({'access_token': access_token}), 200
-    return jsonify({'error': 'Invalid credentials'}), 401
+        return jsonify(access_token=access_token), 200
+    return jsonify({'message': 'Invalid credentials'}), 401
 
-# Get all programs
-@jwt_required()
-def get_programs():
-    """Retrieve a list of all programs.
-    
-    Returns:
-        JSON list of programs with id, name, and description.
-    """
-    if request.method == 'OPTIONS':
-        return '', 200
-    programs = Program.query.all()
-    return jsonify([{'id': p.id, 'name': p.name, 'description': p.description} for p in programs]), 200
-
-# Create a program
-@jwt_required()
-def create_program():
-    """Create a new program.
-    
-    Expects JSON body with name and optional description.
-    Returns:
-        Success message on creation.
-    """
-    if request.method == 'OPTIONS':
-        return '', 200
-    data = request.get_json()
-    program = Program(name=data.get('name'), description=data.get('description', ''))
-    db.session.add(program)
-    db.session.commit()
-    return jsonify({'message': 'Program created'}), 201
-
-# Search clients
-@jwt_required()
-def search_clients():
-    """Search clients by name or email.
-    
-    Expects query parameter 'q'.
-    Returns:
-        JSON list of matching clients with details and enrolled programs.
-    """
-    if request.method == 'OPTIONS':
-        return '', 200
-    query = request.args.get('q', '')
-    clients = Client.query.filter(
-        or_(
-            Client.first_name.ilike(f'%{query}%'),
-            Client.last_name.ilike(f'%{query}%'),
-            Client.email.ilike(f'%{query}%')
-        )
-    ).all()
-    return jsonify([
-        {
-            'id': c.id,
-            'first_name': c.first_name,
-            'last_name': c.last_name,
-            'email': c.email,
-            'phone': c.phone,
-            'date_of_birth': c.date_of_birth,
-            'programs': [{'id': p.id, 'name': p.name} for p in c.programs]
-        } for c in clients
-    ]), 200
-
-# Register a client
+@app.route('/api/clients', methods=['POST'])
 @jwt_required()
 def register_client():
-    """Register a new client.
-    
-    Expects JSON body with first_name, last_name, email, and optional phone, date_of_birth.
-    Returns:
-        Success message on registration.
-    """
-    if request.method == 'OPTIONS':
-        return '', 200
     data = request.get_json()
-    client = Client(
-        first_name=data.get('first_name'),
-        last_name=data.get('last_name'),
-        email=data.get('email'),
-        phone=data.get('phone', ''),
-        date_of_birth=data.get('date_of_birth', '')
+    new_client = Client(
+        first_name=data['first_name'],
+        last_name=data['last_name'],
+        email=data['email'],
+        phone=data.get('phone'),
+        date_of_birth=datetime.strptime(data['date_of_birth'], '%Y-%m-%d') if data.get('date_of_birth') else None,
+        address=data.get('address'),
+        gender=data.get('gender'),
+        emergency_contact=data.get('emergency_contact')
     )
-    db.session.add(client)
+    db.session.add(new_client)
     db.session.commit()
-    return jsonify({'message': 'Client registered'}), 201
+    return jsonify({'id': new_client.id, 'message': 'Client registered successfully'}), 201
 
-# Enroll client in a program
+@app.route('/api/clients/search', methods=['GET'])
 @jwt_required()
-def enroll_client(client_id):
-    """Enroll a client in a program.
-    
-    Expects JSON body with program_id.
-    Returns:
-        Success message on enrollment.
-    """
-    if request.method == 'OPTIONS':
-        return '', 200
-    data = request.get_json()
-    program_id = data.get('program_id')
-    client = Client.query.get_or_404(client_id)
-    program = Program.query.get_or_404(program_id)
-    client.programs.append(program)
-    db.session.commit()
-    return jsonify({'message': 'Client enrolled'}), 201
+def search_clients():
+    query = request.args.get('q', '')
+    clients = Client.query.filter(
+        (Client.first_name.ilike(f'%{query}%')) |
+        (Client.last_name.ilike(f'%{query}%')) |
+        (Client.email.ilike(f'%{query}%'))
+    ).all()
+    return jsonify([{
+        'id': client.id,
+        'first_name': client.first_name,
+        'last_name': client.last_name,
+        'email': client.email,
+        'phone': client.phone,
+        'date_of_birth': client.date_of_birth.isoformat() if client.date_of_birth else None,
+        'address': client.address,
+        'gender': client.gender,
+        'emergency_contact': client.emergency_contact,
+        'created_at': client.created_at.isoformat(),
+        'programs': [{'id': p.id, 'name': p.name} for p in client.programs]
+    } for client in clients]), 200
 
-# Get client profile
+@app.route('/api/clients/<id>', methods=['GET'])
 @jwt_required()
-def get_client(client_id):
-    """Retrieve a client's profile.
-    
-    Returns:
-        JSON object with client details and enrolled programs.
-    """
-    if request.method == 'OPTIONS':
-        return '', 200
-    client = Client.query.get_or_404(client_id)
+def get_client(id):
+    client = Client.query.get_or_404(id)
     return jsonify({
         'id': client.id,
         'first_name': client.first_name,
         'last_name': client.last_name,
         'email': client.email,
         'phone': client.phone,
-        'date_of_birth': client.date_of_birth,
+        'date_of_birth': client.date_of_birth.isoformat() if client.date_of_birth else None,
+        'address': client.address,
+        'gender': client.gender,
+        'emergency_contact': client.emergency_contact,
+        'created_at': client.created_at.isoformat(),
         'programs': [{'id': p.id, 'name': p.name} for p in client.programs]
     }), 200
+
+@app.route('/api/programs', methods=['POST'])
+@jwt_required()
+def create_program():
+    data = request.get_json()
+    # Check for duplicate program name
+    if Program.query.filter_by(name=data['name']).first():
+        return jsonify({'message': 'A program with this name already exists'}), 400
+    new_program = Program(
+        name=data['name'],
+        description=data.get('description')
+    )
+    db.session.add(new_program)
+    db.session.commit()
+    return jsonify({'id': new_program.id, 'message': 'Program created successfully'}), 201
+
+@app.route('/api/programs', methods=['GET'])
+@jwt_required()
+def get_programs():
+    programs = Program.query.all()
+    return jsonify([{
+        'id': program.id,
+        'name': program.name,
+        'description': program.description,
+        'created_at': program.created_at.isoformat()
+    } for program in programs]), 200
+
+@app.route('/api/clients/<client_id>/programs', methods=['POST'])
+@jwt_required()
+def enroll_client(client_id):
+    client = Client.query.get_or_404(client_id)
+    data = request.get_json()
+    program = Program.query.get_or_404(data['program_id'])
+    client.programs.append(program)
+    db.session.commit()
+    return jsonify({'message': 'Client enrolled successfully'}), 200
+
+@app.route('/api/clients/<client_id>/programs/<program_id>', methods=['DELETE'])
+@jwt_required()
+def unenroll_client(client_id, program_id):
+    client = Client.query.get_or_404(client_id)
+    program = Program.query.get_or_404(program_id)
+    if program in client.programs:
+        client.programs.remove(program)
+        db.session.commit()
+        return jsonify({'message': 'Client unenrolled successfully'}), 200
+    return jsonify({'message': 'Client is not enrolled in this program'}), 400
