@@ -15,3 +15,7 @@ frontend/build/
 
 # macOS
 .DS_Store
+backend/database.db
+*.pyc
+backend/instance/database.db
+/backend/venv
