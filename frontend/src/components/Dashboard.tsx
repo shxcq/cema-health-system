@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Row, Col, Card, Form, Button, Table } from 'react-bootstrap';
+import { Container, Row, Col, Card } from 'react-bootstrap';
 import { Doughnut, Line, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, BarElement, CategoryScale } from 'chart.js';
-import { Link } from 'react-router-dom';
+import SearchClients from './SearchClients';
+import ClientList from './ClientList';
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, BarElement, CategoryScale);
@@ -100,78 +101,41 @@ const Dashboard: React.FC = () => {
     <Container className="mt-4">
       <h2>Dashboard</h2>
       <Row className="mb-4">
-        <Col md={6}>
-          <Form onSubmit={handleSearch}>
-            <Form.Group className="mb-3">
-              <Form.Label>Search Clients</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Search by name or email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </Form.Group>
-            <Button variant="primary" type="submit">Search</Button>
-          </Form>
+        <SearchClients
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearch={handleSearch}
+        />
+      </Row>
+      <Row className="mb-4">
+        <Col md={4}>
+          <Card className="chart-card dashboard-chart">
+            <Card.Body>
+              <Card.Title>Clients by Gender</Card.Title>
+              <Doughnut data={genderData} options={{ maintainAspectRatio: false }} />
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="chart-card dashboard-chart">
+            <Card.Body>
+              <Card.Title>Clients by Program</Card.Title>
+              <Bar data={programData} options={{ maintainAspectRatio: false }} />
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="chart-card dashboard-chart">
+            <Card.Body>
+              <Card.Title>Registrations Over Time</Card.Title>
+              <Line data={registrationData} options={{ maintainAspectRatio: false }} />
+            </Card.Body>
+          </Card>
         </Col>
       </Row>
       <Row>
-        <Col md={4}>
-          <Card className="chart-card">
-            <Card.Body>
-              <Card.Title>Clients by Gender</Card.Title>
-              <Doughnut data={genderData} />
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="chart-card">
-            <Card.Body>
-              <Card.Title>Clients by Program</Card.Title>
-              <Bar data={programData} />
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="chart-card">
-            <Card.Body>
-              <Card.Title>Registrations Over Time</Card.Title>
-              <Line data={registrationData} />
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-      <Row className="mt-4">
         <Col>
-          <h3>Clients</h3>
-          {clients.length > 0 ? (
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clients.map((client: any) => (
-                  <tr key={client.id}>
-                    <td>{client.id}</td>
-                    <td>{client.first_name} {client.last_name}</td>
-                    <td>{client.email}</td>
-                    <td>
-                      <Link to={`/clients/${client.id}`}>
-                        <Button variant="outline-primary" size="sm">View Profile</Button>
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          ) : (
-            <p>No clients found.</p>
-          )}
+          <ClientList clients={clients} />
         </Col>
       </Row>
     </Container>
