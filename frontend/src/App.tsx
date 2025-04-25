@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Row, Col, Card, Form, Button, Alert, Table } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { Doughnut, Line, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, BarElement, CategoryScale } from 'chart.js';
 import { BrowserRouter as Router, Route, Routes, Link, useNavigate, useParams } from 'react-router-dom';
@@ -27,71 +27,25 @@ const ClientProfile: React.FC = () => {
     }
   }, [id, token]);
 
-  const handleUnenroll = async (programId: string) => {
-    try {
-      await axios.delete(`http://localhost:5001/api/clients/${id}/programs/${programId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setClient({
-        ...client,
-        programs: client.programs.filter((p: any) => p.id !== programId),
-      });
-      alert('Client unenrolled successfully!');
-    } catch (err) {
-      setError('Failed to unenroll client.');
-    }
-  };
-
   if (!client) return <div>Loading...</div>;
 
   return (
     <Container className="mt-4">
       {error && <Alert variant="danger">{error}</Alert>}
-      <Card className="chart-card client-profile-card">
+      <Card className="chart-card">
         <Card.Body>
           <Card.Title>Client Profile</Card.Title>
-          <div className="client-details">
-            <p><strong>ID:</strong> {client.id}</p>
-            <p><strong>Name:</strong> {client.first_name} {client.last_name}</p>
-            <p><strong>Email:</strong> {client.email}</p>
-            <p><strong>Phone:</strong> {client.phone || 'N/A'}</p>
-            <p><strong>Date of Birth:</strong> {client.date_of_birth || 'N/A'}</p>
-            <p><strong>Address:</strong> {client.address || 'N/A'}</p>
-            <p><strong>Gender:</strong> {client.gender || 'N/A'}</p>
-            <p><strong>Emergency Contact:</strong> {client.emergency_contact || 'N/A'}</p>
-            <p><strong>Registered On:</strong> {new Date(client.created_at).toLocaleDateString()}</p>
-          </div>
+          <p><strong>ID:</strong> {client.id}</p>
+          <p><strong>Name:</strong> {client.first_name} {client.last_name}</p>
+          <p><strong>Email:</strong> {client.email}</p>
+          <p><strong>Phone:</strong> {client.phone}</p>
+          <p><strong>Date of Birth:</strong> {client.date_of_birth}</p>
           <h5>Enrolled Programs</h5>
-          {client.programs.length > 0 ? (
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>Program ID</th>
-                  <th>Name</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(client.programs || []).map((program: any) => (
-                  <tr key={program.id}>
-                    <td>{program.id}</td>
-                    <td>{program.name}</td>
-                    <td>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => handleUnenroll(program.id)}
-                      >
-                        Unenroll
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          ) : (
-            <p>No programs enrolled.</p>
-          )}
+          <ul>
+            {(client.programs || []).map((program: any) => (
+              <li key={program.id}>{program.name} (ID: {program.id})</li>
+            ))}
+          </ul>
           <Button as={Link as any} to="/dashboard" variant="outline-primary">Back to Dashboard</Button>
         </Card.Body>
       </Card>
@@ -164,17 +118,8 @@ const SearchClients: React.FC = () => {
 const RegisterClient: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [clientData, setClientData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    date_of_birth: '',
-    address: '',
-    gender: '',
-    emergency_contact: '',
-  });
-  const [newClientId, setNewClientId] = useState<string | null>(null);
+  const [clientData, setClientData] = useState({ first_name: '', last_name: '', email: '', phone: '', date_of_birth: '' });
+  const [newClientId, setNewClientId] = useState<number | null>(null);
   const token = localStorage.getItem('token');
 
   const handleRegisterClient = async (e: React.FormEvent) => {
@@ -184,16 +129,7 @@ const RegisterClient: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNewClientId(response.data.id);
-      setClientData({
-        first_name: '',
-        last_name: '',
-        email: '',
-        phone: '',
-        date_of_birth: '',
-        address: '',
-        gender: '',
-        emergency_contact: '',
-      });
+      setClientData({ first_name: '', last_name: '', email: '', phone: '', date_of_birth: '' });
       setSuccess('Client registered successfully!');
       setError('');
     } catch (err) {
@@ -263,34 +199,6 @@ const RegisterClient: React.FC = () => {
                 onChange={(e) => setClientData({ ...clientData, date_of_birth: e.target.value })}
               />
             </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Address</Form.Label>
-              <Form.Control
-                type="text"
-                value={clientData.address}
-                onChange={(e) => setClientData({ ...clientData, address: e.target.value })}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Gender</Form.Label>
-              <Form.Select
-                value={clientData.gender}
-                onChange={(e) => setClientData({ ...clientData, gender: e.target.value })}
-              >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Emergency Contact</Form.Label>
-              <Form.Control
-                type="text"
-                value={clientData.emergency_contact}
-                onChange={(e) => setClientData({ ...clientData, emergency_contact: e.target.value })}
-              />
-            </Form.Group>
             <Button variant="primary" type="submit">Register</Button>
           </Form>
         </Card.Body>
@@ -304,7 +212,7 @@ const CreateProgram: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [programData, setProgramData] = useState({ name: '', description: '' });
-  const [newProgramId, setNewProgramId] = useState<string | null>(null);
+  const [newProgramId, setNewProgramId] = useState<number | null>(null);
   const token = localStorage.getItem('token');
 
   const handleCreateProgram = async (e: React.FormEvent) => {
@@ -317,8 +225,8 @@ const CreateProgram: React.FC = () => {
       setProgramData({ name: '', description: '' });
       setSuccess('Program created successfully!');
       setError('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create program.');
+    } catch (err) {
+      setError('Failed to create program.');
       setSuccess('');
     }
   };
