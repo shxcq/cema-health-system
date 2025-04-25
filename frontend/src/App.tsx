@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
-import { Container, Navbar, Nav, Button } from 'react-bootstrap';
+import { Container, Row, Col, Nav, Button } from 'react-bootstrap';
+import { House, PersonPlus, FileMedical, PersonCheck, BoxArrowRight } from 'react-bootstrap-icons';
 import LoginForm from './components/LoginForm';
 import Dashboard from './components/Dashboard';
 import ClientProfile from './components/ClientProfile';
@@ -20,44 +21,60 @@ const App: React.FC = () => {
   };
 
   return (
-    <div>
-      <Navbar bg="dark" variant="dark" expand="lg">
-        <Container>
-          <Navbar.Brand as={Link} to="/">Health System</Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="me-auto">
-              {isAuthenticated ? (
-                <>
-                  <Nav.Link as={Link} to="/dashboard">Dashboard</Nav.Link>
-                  <Nav.Link as={Link} to="/register-client">Register Client</Nav.Link>
-                  <Nav.Link as={Link} to="/create-program">Create Program</Nav.Link>
-                  <Nav.Link as={Link} to="/enroll-client">Enroll Client</Nav.Link>
-                </>
-              ) : (
-                <Nav.Link as={Link} to="/">Login</Nav.Link>
-              )}
-            </Nav>
-            {isAuthenticated && (
-              <Button variant="outline-light" onClick={handleLogout}>
-                Logout
+    <div className="app-wrapper">
+      {isAuthenticated ? (
+        <Row className="g-0">
+          {/* Sidebar */}
+          <Col md={2} className="sidebar">
+            <div className="sidebar-header">
+              <h3>Health System</h3>
+            </div>
+            <Nav className="flex-column">
+              <Nav.Link as={Link} to="/dashboard" className="sidebar-link">
+                <House className="sidebar-icon" /> Dashboard
+              </Nav.Link>
+              <Nav.Link as={Link} to="/register-client" className="sidebar-link">
+                <PersonPlus className="sidebar-icon" /> Register Client
+              </Nav.Link>
+              <Nav.Link as={Link} to="/create-program" className="sidebar-link">
+                <FileMedical className="sidebar-icon" /> Create Program
+              </Nav.Link>
+              <Nav.Link as={Link} to="/enroll-client" className="sidebar-link">
+                <PersonCheck className="sidebar-icon" /> Enroll Client
+              </Nav.Link>
+              <Button
+                variant="outline-light"
+                onClick={handleLogout}
+                className="sidebar-logout mt-3"
+              >
+                <BoxArrowRight className="sidebar-icon" /> Logout
               </Button>
-            )}
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
-
-      <Routes>
-        <Route
-          path="/"
-          element={<LoginForm onLogin={() => setIsAuthenticated(true)} />}
-        />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/clients/:id" element={<ClientProfile />} />
-        <Route path="/register-client" element={<RegisterClient />} />
-        <Route path="/create-program" element={<CreateProgram />} />
-        <Route path="/enroll-client" element={<EnrollClient />} />
-      </Routes>
+            </Nav>
+          </Col>
+          {/* Main Content */}
+          <Col md={10} className="main-content">
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/clients/:id" element={<ClientProfile />} />
+              <Route path="/register-client" element={<RegisterClient />} />
+              <Route path="/create-program" element={<CreateProgram />} />
+              <Route path="/enroll-client" element={<EnrollClient />} />
+              <Route
+                path="/"
+                element={<LoginForm onLogin={() => setIsAuthenticated(true)} />}
+              />
+            </Routes>
+          </Col>
+        </Row>
+      ) : (
+        <Routes>
+          <Route
+            path="/"
+            element={<LoginForm onLogin={() => setIsAuthenticated(true)} />}
+          />
+          <Route path="*" element={<LoginForm onLogin={() => setIsAuthenticated(true)} />} />
+        </Routes>
+      )}
     </div>
   );
 };
