@@ -9,7 +9,7 @@
   overflow: hidden;
 }
 
-/* Sidebar styles */
+/* Left Sidebar styles */
 .sidebar {
   background-color: #343a40;
   color: #fff;
@@ -32,7 +32,7 @@
 
 .sidebar-link {
   color: #adb5bd !important;
-  padding: 15px 20px; /* Increased padding for better spacing */
+  padding: 15px 20px;
   font-size: 1.1rem;
   display: flex;
   align-items: center;
@@ -44,21 +44,37 @@
 }
 
 .sidebar-icon {
-  margin-right: 10px; /* Space between icon and text */
+  margin-right: 10px;
   font-size: 1.2rem;
 }
 
 .sidebar-logout {
-  margin: 20px; /* Increased margin for better spacing */
+  margin: 20px;
   width: calc(100% - 40px);
 }
 
 /* Main content styles */
 .main-content {
-  margin-left: 16.67%; /* Matches sidebar width */
+  margin-left: 16.67%; /* Matches left sidebar width */
   padding: 20px;
   height: 100vh;
   overflow-y: auto;
+}
+
+/* Logout button styles */
+.logout-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 0;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+}
+
+.logout-icon {
+  margin-right: 5px;
 }
 
 /* Existing styles */
