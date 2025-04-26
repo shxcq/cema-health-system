@@ -15,15 +15,15 @@ class Client(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone = db.Column(db.String(20))
     date_of_birth = db.Column(db.Date)
-    address = db.Column(db.String(200))  # New field
-    gender = db.Column(db.String(20))    # New field
-    emergency_contact = db.Column(db.String(20))  # New field
+    address = db.Column(db.String(200))
+    gender = db.Column(db.String(20))
+    emergency_contact = db.Column(db.String(100))  # Increased length
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     programs = db.relationship('Program', secondary=client_programs, backref=db.backref('clients', lazy='dynamic'))
 
 class Program(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = db.Column(db.String(100), unique=True, nullable=False)  # Ensure unique names
+    name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())  # Ensure this field exists
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
     __table_args__ = (db.UniqueConstraint('name', name='uix_program_name'),)
