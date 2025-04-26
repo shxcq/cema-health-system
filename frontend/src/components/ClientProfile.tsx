@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Container, Row, Col, Card, Form, Button, Alert, Table } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
+import { PencilSquare, Trash, PersonCircle } from 'react-bootstrap-icons';
 
 const ClientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -66,15 +67,26 @@ const ClientProfile: React.FC = () => {
     }
   };
 
-  if (!client) return <div>Loading...</div>;
+  if (!client) return <div className="text-center mt-5">Loading...</div>;
 
   return (
-    <Container className="mt-4">
-      {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+    <Container className="client-profile-container">
+      {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
+      {success && <Alert variant="success" className="mt-3">{success}</Alert>}
+
+      {/* Profile Header */}
+      <div className="profile-header mb-4">
+        <div className="profile-avatar">
+          <PersonCircle size={60} />
+        </div>
+        <div className="profile-header-info">
+          <h2 className="profile-name">{client.first_name} {client.last_name}</h2>
+          <p className="profile-email">{client.email}</p>
+        </div>
+      </div>
+
       <Card className="chart-card client-profile-card">
         <Card.Body>
-          <Card.Title>Client Profile</Card.Title>
           {editMode ? (
             <Form onSubmit={handleEditSubmit}>
               <Row>
@@ -86,6 +98,7 @@ const ClientProfile: React.FC = () => {
                       value={formData.first_name}
                       onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                       required
+                      className="profile-input"
                     />
                   </Form.Group>
                 </Col>
@@ -97,114 +110,177 @@ const ClientProfile: React.FC = () => {
                       value={formData.last_name}
                       onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                       required
+                      className="profile-input"
                     />
                   </Form.Group>
                 </Col>
               </Row>
-              <Form.Group className="mb-3">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Phone</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={formData.phone || ''}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Date of Birth</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={formData.date_of_birth?.split('T')[0] || ''}
-                  onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Address</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={formData.address || ''}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Gender</Form.Label>
-                <Form.Select
-                  value={formData.gender || ''}
-                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </Form.Select>
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Emergency Contact</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={formData.emergency_contact || ''}
-                  onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value })}
-                />
-              </Form.Group>
-              <Button variant="primary" type="submit">Save Changes</Button>
-              <Button variant="secondary" onClick={() => setEditMode(false)} className="ms-2">Cancel</Button>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Email</Form.Label>
+                    <Form.Control
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                      className="profile-input"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Phone</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formData.phone || ''}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="profile-input"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Date of Birth</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={formData.date_of_birth?.split('T')[0] || ''}
+                      onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                      className="profile-input"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Gender</Form.Label>
+                    <Form.Select
+                      value={formData.gender || ''}
+                      onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                      className="profile-input"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Address</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formData.address || ''}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      className="profile-input"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Emergency Contact</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formData.emergency_contact || ''}
+                      onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value })}
+                      className="profile-input"
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+              <Button variant="primary" type="submit" className="profile-button me-2">
+                Save Changes
+              </Button>
+              <Button variant="secondary" onClick={() => setEditMode(false)} className="profile-button">
+                Cancel
+              </Button>
             </Form>
           ) : (
-            <>
-              <div className="client-details">
-                <p><strong>ID:</strong> {client.id}</p>
-                <p><strong>Name:</strong> {client.first_name} {client.last_name}</p>
-                <p><strong>Email:</strong> {client.email}</p>
-                <p><strong>Phone:</strong> {client.phone || 'N/A'}</p>
-                <p><strong>Date of Birth:</strong> {client.date_of_birth || 'N/A'}</p>
-                <p><strong>Address:</strong> {client.address || 'N/A'}</p>
-                <p><strong>Gender:</strong> {client.gender || 'N/A'}</p>
-                <p><strong>Emergency Contact:</strong> {client.emergency_contact || 'N/A'}</p>
-                <p><strong>Registered On:</strong> {new Date(client.created_at).toLocaleDateString()}</p>
-              </div>
-              <Button variant="outline-primary" onClick={() => setEditMode(true)} className="mb-3">Edit Client</Button>
-              <h5>Enrolled Programs</h5>
-              {client.programs.length > 0 ? (
-                <Table striped bordered hover>
-                  <thead>
-                    <tr>
-                      <th>Program ID</th>
-                      <th>Name</th>
-                      <th>Description</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(client.programs || []).map((program: any) => (
-                      <tr key={program.id}>
-                        <td>{program.id}</td>
-                        <td>{program.name}</td>
-                        <td>{program.description || 'No description'}</td>
-                        <td>
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => handleUnenroll(program.id)}
-                          >
-                            Unenroll
-                          </Button>
-                        </td>
+            <Row>
+              {/* Client Details */}
+              <Col lg={6} className="mb-4">
+                <h5 className="section-title">Personal Information</h5>
+                <div className="client-details">
+                  <div className="detail-item">
+                    <span className="detail-label">ID:</span>
+                    <span>{client.id}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Phone:</span>
+                    <span>{client.phone || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Date of Birth:</span>
+                    <span>{client.date_of_birth || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Address:</span>
+                    <span>{client.address || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Gender:</span>
+                    <span>{client.gender || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Emergency Contact:</span>
+                    <span>{client.emergency_contact || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Registered On:</span>
+                    <span>{new Date(client.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                <Button
+                  variant="outline-primary"
+                  onClick={() => setEditMode(true)}
+                  className="profile-button mt-3"
+                >
+                  <PencilSquare className="me-2" /> Edit Client
+                </Button>
+              </Col>
+
+              {/* Enrolled Programs */}
+              <Col lg={6}>
+                <h5 className="section-title">Enrolled Programs</h5>
+                {client.programs.length > 0 ? (
+                  <Table striped bordered hover className="profile-table">
+                    <thead>
+                      <tr>
+                        <th>Program ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              ) : (
-                <p>No programs enrolled.</p>
-              )}
-            </>
+                    </thead>
+                    <tbody>
+                      {(client.programs || []).map((program: any) => (
+                        <tr key={program.id}>
+                          <td>{program.id}</td>
+                          <td>{program.name}</td>
+                          <td>{program.description || 'No description'}</td>
+                          <td>
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => handleUnenroll(program.id)}
+                              className="action-button"
+                            >
+                              <Trash className="me-1" /> Unenroll
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <p className="no-data-text">No programs enrolled.</p>
+                )}
+              </Col>
+            </Row>
           )}
         </Card.Body>
       </Card>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
 import { Nav, Button } from 'react-bootstrap';
-import { House, PersonPlus, FileMedical, PersonCheck, ListUl, BoxArrowRight, List } from 'react-bootstrap-icons';
+import { House, PersonPlus, FileMedical, PersonCheck, ListUl, BoxArrowRight, List, Gear } from 'react-bootstrap-icons';
 import LoginForm from './components/LoginForm';
 import Dashboard from './components/Dashboard';
 import ClientProfile from './components/ClientProfile';
@@ -9,6 +9,7 @@ import RegisterClient from './components/RegisterClient';
 import CreateProgram from './components/CreateProgram';
 import EnrollClient from './components/EnrollClient';
 import ClientListPage from './components/ClientListPage';
+import SettingsPage from './components/SettingsPage';
 import './App.css';
 
 const App: React.FC = () => {
@@ -56,6 +57,10 @@ const App: React.FC = () => {
                 <ListUl className="sidebar-icon" />
                 <span>Client List</span>
               </Nav.Link>
+              <Nav.Link as={Link} to="/settings" className="sidebar-link">
+                <Gear className="sidebar-icon" />
+                <span>Settings</span>
+              </Nav.Link>
             </Nav>
             <div className="sidebar-logout">
               <Button
@@ -81,6 +86,7 @@ const App: React.FC = () => {
               <Route path="/create-program" element={<CreateProgram />} />
               <Route path="/enroll-client" element={<EnrollClient />} />
               <Route path="/client-list" element={<ClientListPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route
                 path="/"
                 element={<LoginForm onLogin={() => setIsAuthenticated(true)} />}
