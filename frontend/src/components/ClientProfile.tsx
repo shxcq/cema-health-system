@@ -1,93 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Card, Form, Button, Row, Col, Alert, ListGroup } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Alert, Table } from 'react-bootstrap';
+import { useParams } from 'react-router-dom';
 
 const ClientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [client, setClient] = useState<any>(null);
-  const [formData, setFormData] = useState<{
-    first_name: string;
-    last_name: string;
-    email: string;
-    phone: string;
-    date_of_birth?: string;
-    address: string;
-    gender: string;
-    emergency_contact: string;
-  }>({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    date_of_birth: '',
-    address: '',
-    gender: '',
-    emergency_contact: '',
-  });
   const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState<any>({});
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
   useEffect(() => {
-    const fetchClient = async () => {
-      try {
-        const response = await axios.get(`http://localhost:5001/api/clients/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setClient(response.data);
-        setFormData({
-          first_name: response.data.first_name,
-          last_name: response.data.last_name,
-          email: response.data.email,
-          phone: response.data.phone || '',
-          date_of_birth: response.data.date_of_birth || '',
-          address: response.data.address || '',
-          gender: response.data.gender || '',
-          emergency_contact: response.data.emergency_contact || '',
-        });
-        setError('');
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to fetch client.');
-      }
-    };
-    fetchClient();
+    if (token && id) {
+      fetchClient();
+    }
   }, [id, token]);
 
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const payload: any = {
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      email: formData.email,
-      phone: formData.phone,
-      address: formData.address,
-      gender: formData.gender,
-      emergency_contact: formData.emergency_contact,
-    };
-    if (formData.date_of_birth) {
-      payload.date_of_birth = formData.date_of_birth;
-    }
+  const fetchClient = async () => {
     try {
-      await axios.put(`http://localhost:5001/api/clients/${id}`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSuccess('Client updated successfully!');
-      setError('');
-      setEditMode(false);
       const response = await axios.get(`http://localhost:5001/api/clients/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClient(response.data);
+      setFormData(response.data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update client.');
-      setSuccess('');
+      setError(err.response?.data?.message || 'Failed to load client profile.');
     }
   };
 
-  const handleUnenroll = async (programId: number) => {
+  const handleUnenroll = async (programId: string) => {
     try {
       await axios.delete(`http://localhost:5001/api/clients/${id}/programs/${programId}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -100,19 +43,36 @@ const ClientProfile: React.FC = () => {
       setError('');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to unenroll client.');
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = { ...formData };
+    if (!payload.date_of_birth) {
+      delete payload.date_of_birth;
+    }
+    try {
+      await axios.put(`http://localhost:5001/api/clients/${id}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setClient(payload);
+      setEditMode(false);
+      setSuccess('Client updated successfully!');
+      setError('');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update client.');
       setSuccess('');
     }
   };
 
-  if (!client) {
-    return <Container className="mt-4"><Alert variant="danger">{error || 'Loading...'}</Alert></Container>;
-  }
+  if (!client) return <div>Loading...</div>;
 
   return (
     <Container className="mt-4">
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
-      <Card className="chart-card">
+      <Card className="chart-card client-profile-card">
         <Card.Body>
           <Card.Title>Client Profile</Card.Title>
           {editMode ? (
@@ -154,7 +114,7 @@ const ClientProfile: React.FC = () => {
                 <Form.Label>Phone</Form.Label>
                 <Form.Control
                   type="text"
-                  value={formData.phone}
+                  value={formData.phone || ''}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
               </Form.Group>
@@ -162,7 +122,7 @@ const ClientProfile: React.FC = () => {
                 <Form.Label>Date of Birth</Form.Label>
                 <Form.Control
                   type="date"
-                  value={formData.date_of_birth || ''}
+                  value={formData.date_of_birth?.split('T')[0] || ''}
                   onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                 />
               </Form.Group>
@@ -170,14 +130,14 @@ const ClientProfile: React.FC = () => {
                 <Form.Label>Address</Form.Label>
                 <Form.Control
                   type="text"
-                  value={formData.address}
+                  value={formData.address || ''}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Gender</Form.Label>
                 <Form.Select
-                  value={formData.gender}
+                  value={formData.gender || ''}
                   onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                 >
                   <option value="">Select Gender</option>
@@ -190,51 +150,64 @@ const ClientProfile: React.FC = () => {
                 <Form.Label>Emergency Contact</Form.Label>
                 <Form.Control
                   type="text"
-                  value={formData.emergency_contact}
+                  value={formData.emergency_contact || ''}
                   onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value })}
                 />
               </Form.Group>
               <Button variant="primary" type="submit">Save Changes</Button>
-              <Button variant="secondary" className="ms-2" onClick={() => setEditMode(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => setEditMode(false)} className="ms-2">Cancel</Button>
             </Form>
           ) : (
             <>
-              <p><strong>First Name:</strong> {client.first_name}</p>
-              <p><strong>Last Name:</strong> {client.last_name}</p>
-              <p><strong>Email:</strong> {client.email}</p>
-              <p><strong>Phone:</strong> {client.phone || 'N/A'}</p>
-              <p><strong>Date of Birth:</strong> {client.date_of_birth || 'N/A'}</p>
-              <p><strong>Address:</strong> {client.address || 'N/A'}</p>
-              <p><strong>Gender:</strong> {client.gender || 'N/A'}</p>
-              <p><strong>Emergency Contact:</strong> {client.emergency_contact || 'N/A'}</p>
+              <div className="client-details">
+                <p><strong>ID:</strong> {client.id}</p>
+                <p><strong>Name:</strong> {client.first_name} {client.last_name}</p>
+                <p><strong>Email:</strong> {client.email}</p>
+                <p><strong>Phone:</strong> {client.phone || 'N/A'}</p>
+                <p><strong>Date of Birth:</strong> {client.date_of_birth || 'N/A'}</p>
+                <p><strong>Address:</strong> {client.address || 'N/A'}</p>
+                <p><strong>Gender:</strong> {client.gender || 'N/A'}</p>
+                <p><strong>Emergency Contact:</strong> {client.emergency_contact || 'N/A'}</p>
+                <p><strong>Registered On:</strong> {new Date(client.created_at).toLocaleDateString()}</p>
+              </div>
+              <Button variant="outline-primary" onClick={() => setEditMode(true)} className="mb-3">Edit Client</Button>
               <h5>Enrolled Programs</h5>
-              <ListGroup>
-                {client.programs && client.programs.length > 0 ? (
-                  client.programs.map((program: any) => (
-                    <ListGroup.Item key={program.id}>
-                      {program.name}
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        className="ms-2"
-                        onClick={() => handleUnenroll(program.id)}
-                      >
-                        Unenroll
-                      </Button>
-                    </ListGroup.Item>
-                  ))
-                ) : (
-                  <ListGroup.Item>No programs enrolled</ListGroup.Item>
-                )}
-              </ListGroup>
-              <Button className="mt-3" onClick={() => setEditMode(true)}>Edit Profile</Button>
+              {client.programs.length > 0 ? (
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Program ID</th>
+                      <th>Name</th>
+                      <th>Description</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(client.programs || []).map((program: any) => (
+                      <tr key={program.id}>
+                        <td>{program.id}</td>
+                        <td>{program.name}</td>
+                        <td>{program.description || 'No description'}</td>
+                        <td>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleUnenroll(program.id)}
+                          >
+                            Unenroll
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              ) : (
+                <p>No programs enrolled.</p>
+              )}
             </>
           )}
         </Card.Body>
       </Card>
-      <Button className="mt-3" variant="secondary" onClick={() => navigate('/clients')}>
-        Back to Clients
-      </Button>
     </Container>
   );
 };

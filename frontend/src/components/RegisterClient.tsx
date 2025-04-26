@@ -10,7 +10,7 @@ const RegisterClient: React.FC = () => {
     last_name: string;
     email: string;
     phone: string;
-    date_of_birth?: string;
+    date_of_birth?: string; // Made optional
     address: string;
     gender: string;
     emergency_contact: string;

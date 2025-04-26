@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Form, Button, Card, Alert, Table } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Table, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
 const ClientListPage: React.FC = () => {
@@ -8,6 +8,12 @@ const ClientListPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+  useEffect(() => {
+    if (!token) {
+      setErrorMessage('Please log in to search clients.');
+    }
+  }, [token]);
 
   const fetchClients = async () => {
     if (!token) {
@@ -33,15 +39,6 @@ const ClientListPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (searchQuery) {
-      const delayDebounceFn = setTimeout(() => {
-        fetchClients();
-      }, 500);
-      return () => clearTimeout(delayDebounceFn);
-    }
-  }, [searchQuery]);
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     fetchClients();
@@ -49,38 +46,52 @@ const ClientListPage: React.FC = () => {
 
   return (
     <Container className="mt-4">
-      <Card className="chart-card">
-        <Card.Body>
-          <Card.Title>Search Clients</Card.Title>
-          <Form onSubmit={handleSearch} className="mb-3">
-            <Form.Group>
+      <h2>Client List</h2>
+      <Row className="mb-4">
+        <Col md={4}>
+          <Form onSubmit={handleSearch}>
+            <Form.Group className="mb-3">
+              <Form.Label>Search Clients</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Search by name or email"
+                placeholder="Search by name or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </Form.Group>
-            <Button variant="primary" type="submit" className="mt-2">Search</Button>
+            <Button variant="primary" type="submit" disabled={!token}>Search</Button>
           </Form>
-          {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
+        </Col>
+      </Row>
+      {errorMessage && (
+        <Row className="mb-3">
+          <Col>
+            <Alert variant="warning">{errorMessage}</Alert>
+          </Col>
+        </Row>
+      )}
+      <Row>
+        <Col>
+          <h3>Clients</h3>
           {clients.length > 0 ? (
             <Table striped bordered hover>
               <thead>
                 <tr>
+                  <th>ID</th>
                   <th>Name</th>
                   <th>Email</th>
-                  <th>Actions</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {clients.map((client) => (
+                {clients.map((client: any) => (
                   <tr key={client.id}>
-                    <td>{`${client.first_name} ${client.last_name}`}</td>
+                    <td>{client.id}</td>
+                    <td>{client.first_name} {client.last_name}</td>
                     <td>{client.email}</td>
                     <td>
-                      <Link to={`/clients/${client.id}`} className="btn btn-info btn-sm">
-                        View Profile
+                      <Link to={`/clients/${client.id}`}>
+                        <Button variant="outline-primary" size="sm">View Profile</Button>
                       </Link>
                     </td>
                   </tr>
@@ -88,10 +99,10 @@ const ClientListPage: React.FC = () => {
               </tbody>
             </Table>
           ) : (
-            <p>No clients found.</p>
+            !errorMessage && <p>No clients found.</p>
           )}
-        </Card.Body>
-      </Card>
+        </Col>
+      </Row>
     </Container>
   );
 };

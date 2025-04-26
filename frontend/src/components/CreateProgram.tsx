@@ -9,10 +9,14 @@ const CreateProgram: React.FC = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name.trim()) {
+      setError('Program name is required.');
+      return;
+    }
     try {
       await axios.post('http://localhost:5001/api/programs', formData, {
         headers: { Authorization: `Bearer ${token}` },
@@ -52,7 +56,7 @@ const CreateProgram: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </Form.Group>
-            <Button variant="primary" type="submit">Create Program</Button>
+            <Button variant="primary" type="submit" disabled={!token}>Create Program</Button>
           </Form>
         </Card.Body>
       </Card>
