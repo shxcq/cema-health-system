@@ -1,29 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Row, Col, Form, Button, Table } from 'react-bootstrap';
+import { Container, Form, Button, Card, Alert, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
 const ClientListPage: React.FC = () => {
   const [clients, setClients] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const token = localStorage.getItem('token');
-
-  useEffect(() => {
-    if (token) {
-      fetchClients();
-    }
-  }, [token, searchQuery]);
+  const [errorMessage, setErrorMessage] = useState('');
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
   const fetchClients = async () => {
+    if (!token) {
+      setErrorMessage('Please log in to search clients.');
+      setClients([]);
+      return;
+    }
+    if (!searchQuery.trim()) {
+      setErrorMessage('Please enter a name or email to search.');
+      setClients([]);
+      return;
+    }
     try {
-      const response = await axios.get(`http://localhost:5001/api/clients/search?q=${searchQuery}`, {
+      const response = await axios.get(`http://localhost:5001/api/clients/search?q=${encodeURIComponent(searchQuery)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClients(response.data);
-    } catch (err) {
-      console.error('Failed to fetch clients:', err);
+      setErrorMessage('');
+    } catch (err: any) {
+      console.error('Failed to fetch clients:', err.response?.data, err.response?.status);
+      setErrorMessage(err.response?.data?.message || 'Failed to fetch clients. Please try again.');
+      setClients([]);
     }
   };
+
+  useEffect(() => {
+    if (searchQuery) {
+      const delayDebounceFn = setTimeout(() => {
+        fetchClients();
+      }, 500);
+      return () => clearTimeout(delayDebounceFn);
+    }
+  }, [searchQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,45 +49,38 @@ const ClientListPage: React.FC = () => {
 
   return (
     <Container className="mt-4">
-      <h2>Client List</h2>
-      <Row className="mb-4">
-        <Col md={4}>
-          <Form onSubmit={handleSearch}>
-            <Form.Group className="mb-3">
-              <Form.Label>Search Clients</Form.Label>
+      <Card className="chart-card">
+        <Card.Body>
+          <Card.Title>Search Clients</Card.Title>
+          <Form onSubmit={handleSearch} className="mb-3">
+            <Form.Group>
               <Form.Control
                 type="text"
-                placeholder="Search by name or email..."
+                placeholder="Search by name or email"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </Form.Group>
-            <Button variant="primary" type="submit">Search</Button>
+            <Button variant="primary" type="submit" className="mt-2">Search</Button>
           </Form>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <h3>Clients</h3>
+          {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
           {clients.length > 0 ? (
             <Table striped bordered hover>
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Name</th>
                   <th>Email</th>
-                  <th>Action</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {clients.map((client: any) => (
+                {clients.map((client) => (
                   <tr key={client.id}>
-                    <td>{client.id}</td>
-                    <td>{client.first_name} {client.last_name}</td>
+                    <td>{`${client.first_name} ${client.last_name}`}</td>
                     <td>{client.email}</td>
                     <td>
-                      <Link to={`/clients/${client.id}`}>
-                        <Button variant="outline-primary" size="sm">View Profile</Button>
+                      <Link to={`/clients/${client.id}`} className="btn btn-info btn-sm">
+                        View Profile
                       </Link>
                     </td>
                   </tr>
@@ -80,8 +90,8 @@ const ClientListPage: React.FC = () => {
           ) : (
             <p>No clients found.</p>
           )}
-        </Col>
-      </Row>
+        </Card.Body>
+      </Card>
     </Container>
   );
 };
