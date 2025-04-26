@@ -23,14 +23,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
         username,
         password,
       });
-
       const token = response.data.access_token;
       if (rememberMe) {
         localStorage.setItem('token', token);
       } else {
         sessionStorage.setItem('token', token);
       }
-
       onLogin();
       navigate('/dashboard');
     } catch (err: any) {
@@ -56,9 +54,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              autoComplete="username"
             />
           </Form.Group>
-
           <Form.Group className="mb-3" controlId="password">
             <Form.Label>
               <i className="bi bi-lock-fill me-2"></i>Password
@@ -69,9 +67,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
             />
           </Form.Group>
-
           <Form.Group className="mb-3" controlId="rememberMe">
             <Form.Check
               type="checkbox"
@@ -80,7 +78,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
               onChange={(e) => setRememberMe(e.target.checked)}
             />
           </Form.Group>
-
           <Button variant="primary" type="submit" className="w-100" disabled={loading}>
             {loading ? 'Logging in...' : 'Login'}
           </Button>

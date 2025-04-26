@@ -10,7 +10,7 @@ const ClientProfile: React.FC = () => {
   const [formData, setFormData] = useState<any>({});
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
   useEffect(() => {
     if (token && id) {
@@ -25,8 +25,8 @@ const ClientProfile: React.FC = () => {
       });
       setClient(response.data);
       setFormData(response.data);
-    } catch (err) {
-      setError('Failed to load client profile.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load client profile.');
     }
   };
 
@@ -39,24 +39,29 @@ const ClientProfile: React.FC = () => {
         ...client,
         programs: client.programs.filter((p: any) => p.id !== programId),
       });
-      alert('Client unenrolled successfully!');
-    } catch (err) {
-      setError('Failed to unenroll client.');
+      setSuccess('Client unenrolled successfully!');
+      setError('');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to unenroll client.');
     }
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = { ...formData };
+    if (!payload.date_of_birth) {
+      delete payload.date_of_birth;
+    }
     try {
-      await axios.put(`http://localhost:5001/api/clients/${id}`, formData, {
+      await axios.put(`http://localhost:5001/api/clients/${id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setClient(formData);
+      setClient(payload);
       setEditMode(false);
       setSuccess('Client updated successfully!');
       setError('');
-    } catch (err) {
-      setError('Failed to update client.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update client.');
       setSuccess('');
     }
   };
@@ -149,15 +154,6 @@ const ClientProfile: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value })}
                 />
               </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Description</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={formData.description || ''}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </Form.Group>
               <Button variant="primary" type="submit">Save Changes</Button>
               <Button variant="secondary" onClick={() => setEditMode(false)} className="ms-2">Cancel</Button>
             </Form>
@@ -172,7 +168,6 @@ const ClientProfile: React.FC = () => {
                 <p><strong>Address:</strong> {client.address || 'N/A'}</p>
                 <p><strong>Gender:</strong> {client.gender || 'N/A'}</p>
                 <p><strong>Emergency Contact:</strong> {client.emergency_contact || 'N/A'}</p>
-                <p><strong>Description:</strong> {client.description || 'No description provided'}</p>
                 <p><strong>Registered On:</strong> {new Date(client.created_at).toLocaleDateString()}</p>
               </div>
               <Button variant="outline-primary" onClick={() => setEditMode(true)} className="mb-3">Edit Client</Button>
