@@ -17,6 +17,14 @@ def register_routes(app):
     def log_request():
         print(f"Request: {request.method} {request.path} {request.get_json(silent=True)}")
 
+    # Handle CORS preflight requests for all routes
+    @app.after_request
+    def add_cors_headers(response):
+        response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Authorization, Content-Type'
+        return response
+
     @app.route('/api/login', methods=['POST', 'OPTIONS'])
     def login():
         if request.method == 'OPTIONS':
@@ -201,6 +209,24 @@ def register_routes(app):
             'description': program.description,
             'created_at': program.created_at.isoformat() if program.created_at else None
         } for program in programs]), 200
+
+    @app.route('/api/programs/<program_id>', methods=['PUT', 'OPTIONS'])
+    @jwt_required()
+    def update_program(program_id):
+        if request.method == 'OPTIONS':
+            return jsonify({}), 200
+        program = Program.query.get_or_404(program_id)
+        data = request.get_json()
+        if not data:
+            return jsonify({'message': 'No data provided'}), 422
+        program.name = data.get('name', program.name)
+        program.description = data.get('description', program.description)
+        try:
+            db.session.commit()
+            return jsonify({'message': 'Program updated successfully'}), 200
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({'message': 'Program update failed due to database error'}), 422
 
     @app.route('/api/clients/<client_id>/programs', methods=['POST', 'OPTIONS'])
     @jwt_required()
