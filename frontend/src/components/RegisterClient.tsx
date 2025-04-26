@@ -5,7 +5,16 @@ import { useNavigate } from 'react-router-dom';
 
 const RegisterClient: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    date_of_birth?: string;
+    address: string;
+    gender: string;
+    emergency_contact: string;
+  }>({
     first_name: '',
     last_name: '',
     email: '',
@@ -14,23 +23,34 @@ const RegisterClient: React.FC = () => {
     address: '',
     gender: '',
     emergency_contact: '',
-    description: '',
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload: any = {
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      email: formData.email,
+      phone: formData.phone,
+      address: formData.address,
+      gender: formData.gender,
+      emergency_contact: formData.emergency_contact,
+    };
+    if (formData.date_of_birth) {
+      payload.date_of_birth = formData.date_of_birth;
+    }
     try {
-      const response = await axios.post('http://localhost:5001/api/clients', formData, {
+      const response = await axios.post('http://localhost:5001/api/clients', payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('Client registered successfully!');
       setError('');
       setTimeout(() => navigate(`/clients/${response.data.id}`), 1000);
-    } catch (err) {
-      setError('Failed to register client.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to register client.');
       setSuccess('');
     }
   };
@@ -88,7 +108,7 @@ const RegisterClient: React.FC = () => {
               <Form.Label>Date of Birth</Form.Label>
               <Form.Control
                 type="date"
-                value={formData.date_of_birth}
+                value={formData.date_of_birth || ''}
                 onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
               />
             </Form.Group>
@@ -120,16 +140,7 @@ const RegisterClient: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value })}
               />
             </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-            </Form.Group>
-            <Button variant="primary" type="submit">Register Client</Button>
+            <Button variant="primary" type="submit" disabled={!token}>Register Client</Button>
           </Form>
         </Card.Body>
       </Card>
