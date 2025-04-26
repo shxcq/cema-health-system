@@ -18,6 +18,16 @@ The system allows doctors to create health programs (e.g., TB, Malaria, HIV), re
 - **Responsive UI**: Modern design with React-Bootstrap and custom styles in `frontend/src/App.css`.
 
 ---
+## Here are a few previews of the Health Information System in action:
+
+![Image](https://github.com/user-attachments/assets/88b5680e-0003-4061-be5f-e1b9b1dbb90d)
+![Image](https://github.com/user-attachments/assets/cd94bb3a-5c2d-46aa-bf02-6629c697e322)
+![Image](https://github.com/user-attachments/assets/8a2f7cf5-bfc6-4263-a9fa-5c1df8fa08ba)
+![Image](https://github.com/user-attachments/assets/6add151f-67c6-4129-8c18-7580a1ccf673)
+![Image](https://github.com/user-attachments/assets/06125e36-5e78-4fc7-91f5-96fe03f45174)
+![Image](https://github.com/user-attachments/assets/28580517-c57b-46ca-97ee-370ae1c09f24)
+
+---
 
 ## Project Structure
 
