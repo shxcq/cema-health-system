@@ -1,41 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Row, Col, Form, Button, Table, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
 const ClientListPage: React.FC = () => {
   const [clients, setClients] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
-    if (!token) {
-      setErrorMessage('Please log in to search clients.');
+    if (token) {
+      fetchClients();
     }
-  }, [token]);
+  }, [token, searchQuery]);
 
   const fetchClients = async () => {
-    if (!token) {
-      setErrorMessage('Please log in to search clients.');
-      setClients([]);
-      return;
-    }
-    if (!searchQuery.trim()) {
-      setErrorMessage('Please enter a name or email to search.');
-      setClients([]);
-      return;
-    }
     try {
-      const response = await axios.get(`http://localhost:5001/api/clients/search?q=${encodeURIComponent(searchQuery)}`, {
+      const response = await axios.get(`http://localhost:5001/api/clients/search?q=${searchQuery}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClients(response.data);
-      setErrorMessage('');
-    } catch (err: any) {
-      console.error('Failed to fetch clients:', err.response?.data, err.response?.status);
-      setErrorMessage(err.response?.data?.message || 'Failed to fetch clients. Please try again.');
-      setClients([]);
+    } catch (err) {
+      console.error('Failed to fetch clients:', err);
     }
   };
 
@@ -59,17 +45,10 @@ const ClientListPage: React.FC = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </Form.Group>
-            <Button variant="primary" type="submit" disabled={!token}>Search</Button>
+            <Button variant="primary" type="submit">Search</Button>
           </Form>
         </Col>
       </Row>
-      {errorMessage && (
-        <Row className="mb-3">
-          <Col>
-            <Alert variant="warning">{errorMessage}</Alert>
-          </Col>
-        </Row>
-      )}
       <Row>
         <Col>
           <h3>Clients</h3>
@@ -99,7 +78,7 @@ const ClientListPage: React.FC = () => {
               </tbody>
             </Table>
           ) : (
-            !errorMessage && <p>No clients found.</p>
+            <p>No clients found.</p>
           )}
         </Col>
       </Row>

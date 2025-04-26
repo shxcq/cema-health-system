@@ -9,26 +9,23 @@ const EnrollClient: React.FC = () => {
   const [selectedProgram, setSelectedProgram] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     if (token) {
       fetchClients();
       fetchPrograms();
-    } else {
-      setError('Please log in to enroll clients.');
     }
   }, [token]);
 
   const fetchClients = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/clients', {
+      const response = await axios.get('http://localhost:5001/api/clients/search?q=', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClients(response.data);
-      setError('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch clients.');
+    } catch (err) {
+      setError('Failed to fetch clients.');
     }
   };
 
@@ -38,9 +35,8 @@ const EnrollClient: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPrograms(response.data);
-      setError('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch programs.');
+    } catch (err) {
+      setError('Failed to fetch programs.');
     }
   };
 
@@ -60,8 +56,8 @@ const EnrollClient: React.FC = () => {
       setError('');
       setSelectedClient('');
       setSelectedProgram('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to enroll client.');
+    } catch (err) {
+      setError('Failed to enroll client.');
       setSuccess('');
     }
   };
@@ -110,7 +106,7 @@ const EnrollClient: React.FC = () => {
                 </Form.Group>
               </Col>
             </Row>
-            <Button variant="primary" type="submit" disabled={!token}>Enroll Client</Button>
+            <Button variant="primary" type="submit">Enroll Client</Button>
           </Form>
         </Card.Body>
       </Card>

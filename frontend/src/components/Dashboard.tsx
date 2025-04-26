@@ -10,28 +10,23 @@ ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearS
 const Dashboard: React.FC = () => {
   const [programs, setPrograms] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
-  const [error, setError] = useState('');
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     if (token) {
       fetchClients();
       fetchPrograms();
-    } else {
-      setError('Please log in to view dashboard.');
     }
   }, [token]);
 
   const fetchClients = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/clients', {
+      const response = await axios.get(`http://localhost:5001/api/clients/search?q=`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClients(response.data);
-      setError('');
-    } catch (err: any) {
-      console.error('Failed to fetch clients:', err.response?.data);
-      setError(err.response?.data?.message || 'Failed to fetch clients.');
+    } catch (err) {
+      console.error('Failed to fetch clients:', err);
     }
   };
 
@@ -41,10 +36,8 @@ const Dashboard: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPrograms(response.data);
-      setError('');
-    } catch (err: any) {
-      console.error('Failed to fetch programs:', err.response?.data);
-      setError(err.response?.data?.message || 'Failed to fetch programs.');
+    } catch (err) {
+      console.error('Failed to fetch programs:', err);
     }
   };
 
@@ -99,7 +92,6 @@ const Dashboard: React.FC = () => {
   return (
     <Container className="mt-4">
       <h2>Dashboard</h2>
-      {error && <div className="alert alert-danger">{error}</div>}
       <Row className="mb-4">
         <Col md={4}>
           <Card className="chart-card dashboard-chart">
