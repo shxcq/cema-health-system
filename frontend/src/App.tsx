@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Nav, Button } from 'react-bootstrap';
-import { House, PersonPlus, FileMedical, PersonCheck, ListUl, BoxArrowRight } from 'react-bootstrap-icons';
+import { Nav, Button } from 'react-bootstrap';
+import { House, PersonPlus, FileMedical, PersonCheck, ListUl, BoxArrowRight, List } from 'react-bootstrap-icons';
 import LoginForm from './components/LoginForm';
 import Dashboard from './components/Dashboard';
 import ClientProfile from './components/ClientProfile';
@@ -13,6 +13,7 @@ import './App.css';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -21,44 +22,58 @@ const App: React.FC = () => {
     navigate('/');
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarExpanded(!isSidebarExpanded);
+  };
+
   return (
     <div className="app-wrapper">
       {isAuthenticated ? (
-        <Row className="g-0">
-          {/* Left Sidebar (Main Navigation) */}
-          <Col md={2} className="sidebar">
+        <>
+          {/* Sidebar */}
+          <div className={`sidebar ${isSidebarExpanded ? 'expanded' : ''}`}>
             <div className="sidebar-header">
               <h3>Health System</h3>
             </div>
-            <Nav className="flex-column">
+            <Nav className="sidebar-nav">
               <Nav.Link as={Link} to="/dashboard" className="sidebar-link">
-                <House className="sidebar-icon" /> Dashboard
+                <House className="sidebar-icon" />
+                <span>Dashboard</span>
               </Nav.Link>
               <Nav.Link as={Link} to="/register-client" className="sidebar-link">
-                <PersonPlus className="sidebar-icon" /> Register Client
+                <PersonPlus className="sidebar-icon" />
+                <span>Register Client</span>
               </Nav.Link>
               <Nav.Link as={Link} to="/create-program" className="sidebar-link">
-                <FileMedical className="sidebar-icon" /> Create Program
+                <FileMedical className="sidebar-icon" />
+                <span>Create Program</span>
               </Nav.Link>
               <Nav.Link as={Link} to="/enroll-client" className="sidebar-link">
-                <PersonCheck className="sidebar-icon" /> Enroll Client
+                <PersonCheck className="sidebar-icon" />
+                <span>Enroll Client</span>
               </Nav.Link>
               <Nav.Link as={Link} to="/client-list" className="sidebar-link">
-                <ListUl className="sidebar-icon" /> Client List
+                <ListUl className="sidebar-icon" />
+                <span>Client List</span>
               </Nav.Link>
             </Nav>
-          </Col>
-          {/* Main Content */}
-          <Col md={10} className="main-content">
-            <div className="logout-container">
+            <div className="sidebar-logout">
               <Button
-                variant="outline-dark"
+                variant="link"
                 onClick={handleLogout}
-                className="logout-button"
+                className="sidebar-link p-0"
               >
-                <BoxArrowRight className="logout-icon" /> Logout
+                <BoxArrowRight className="sidebar-icon" />
+                <span>Logout</span>
               </Button>
             </div>
+            <div className="sidebar-toggle" onClick={toggleSidebar}>
+              <List className="sidebar-toggle-icon" />
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className={`main-content ${isSidebarExpanded ? 'expanded' : ''}`}>
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/clients/:id" element={<ClientProfile />} />
@@ -71,8 +86,8 @@ const App: React.FC = () => {
                 element={<LoginForm onLogin={() => setIsAuthenticated(true)} />}
               />
             </Routes>
-          </Col>
-        </Row>
+          </div>
+        </>
       ) : (
         <Routes>
           <Route
