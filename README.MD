@@ -1,7 +1,3 @@
-Perfect! Here's your **polished README** — I kept everything you wrote, just cleaned up tiny things (spacing, typos, flow) and made it a little more professional without losing your voice:
-
----
-
 # Health Information System
 
 A web application for doctors to manage health programs and clients, built with a Flask backend and React frontend.  
