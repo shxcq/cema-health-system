@@ -45,64 +45,63 @@ const ClientListPage: React.FC = () => {
   };
 
   return (
-    <Container className="mt-4">
-      <h2>Client List</h2>
-      <Row className="mb-4">
-        <Col md={4}>
-          <Form onSubmit={handleSearch}>
-            <Form.Group className="mb-3">
-              <Form.Label>Search Clients</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Search by name or email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </Form.Group>
-            <Button variant="primary" type="submit" disabled={!token}>Search</Button>
-          </Form>
-        </Col>
-      </Row>
+    <Container className="client-list-container">
+      <h2 className="page-title">Client List</h2>
+      <div className="search-card chart-card">
+        <Form onSubmit={handleSearch}>
+          <Form.Group className="mb-3">
+            <Form.Label>Search Clients</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Search by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+          </Form.Group>
+          <Button variant="primary" type="submit" disabled={!token} className="search-button">
+            Search
+          </Button>
+        </Form>
+      </div>
       {errorMessage && (
-        <Row className="mb-3">
-          <Col>
-            <Alert variant="warning">{errorMessage}</Alert>
-          </Col>
-        </Row>
+        <Alert variant="warning" className="error-alert">
+          {errorMessage}
+        </Alert>
       )}
-      <Row>
-        <Col>
-          <h3>Clients</h3>
-          {clients.length > 0 ? (
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Action</th>
+      <div className="clients-table-card chart-card">
+        <h3 className="section-title">Clients</h3>
+        {clients.length > 0 ? (
+          <Table className="clients-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {clients.map((client: any) => (
+                <tr key={client.id}>
+                  <td>{client.id}</td>
+                  <td>{client.first_name} {client.last_name}</td>
+                  <td>{client.email}</td>
+                  <td>
+                    <Link to={`/clients/${client.id}`}>
+                      <Button variant="outline-primary" size="sm" className="action-button">
+                        View Profile
+                      </Button>
+                    </Link>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {clients.map((client: any) => (
-                  <tr key={client.id}>
-                    <td>{client.id}</td>
-                    <td>{client.first_name} {client.last_name}</td>
-                    <td>{client.email}</td>
-                    <td>
-                      <Link to={`/clients/${client.id}`}>
-                        <Button variant="outline-primary" size="sm">View Profile</Button>
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          ) : (
-            !errorMessage && <p>No clients found.</p>
-          )}
-        </Col>
-      </Row>
+              ))}
+            </tbody>
+          </Table>
+        ) : (
+          !errorMessage && <p className="no-data-text">No clients found.</p>
+        )}
+      </div>
     </Container>
   );
 };
