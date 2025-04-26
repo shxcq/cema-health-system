@@ -168,25 +168,6 @@ Authentication:
 
 POST /api/login: Authenticate and receive a JWT token.
 
-
-
-
-Screenshots
-You can add screenshots of the app here to showcase the UI. For example:
-
-ClientProfile.tsx two-column layout (personal info and enrolled programs).
-ClientListPage.tsx search interface.
-SettingsPage.tsx program management.
-
-To add screenshots:
-
-Run the app and take screenshots (e.g., Windows: Snipping Tool, macOS: Command + Shift + 4).
-Save them in a screenshots folder (e.g., screenshots/client-profile.png).
-Add them to the README with Markdown:  ![Client Profile](screenshots/client-profile.png)
-
-
-
-
 Future Improvements
 
 Unit Tests: Add tests in backend/tests to validate API endpoints (e.g., /api/clients POST).
