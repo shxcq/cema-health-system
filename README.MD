@@ -85,7 +85,7 @@ health-information-system/
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/health-information-system.git
+git clone https://github.com/shxcq/cema-health-system.git
 cd health-information-system
 ```
 
